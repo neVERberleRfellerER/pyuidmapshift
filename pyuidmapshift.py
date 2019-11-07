@@ -3,18 +3,23 @@
 import argparse
 import os
 
+def map_id(old_id, source, destination):
+    if old_id < source:
+        return -1
+    offset = old_id - source
+    return destination + offset
+
 def shift_id(path, source, destination, shift_uids, shift_gids):
     st = os.lstat(path)
 
     old_uid = st.st_uid
-    uid_offset = old_uid - source
-    new_uid = destination + uid_offset if shift_uids else -1
+    new_uid = map_id(old_uid, source, destination) if shift_uids else -1
 
     old_gid = st.st_gid
-    gid_offset = old_gid - source
-    new_gid = destination + gid_offset if shift_gids else -1
+    new_gid = map_id(old_gid, source, destination) if shift_gids else -1
 
-    os.lchown(path, new_uid, new_gid)
+    if new_uid >= 0 or new_gid >= 0:
+        os.lchown(path, new_uid, new_gid)
 
 parser = argparse.ArgumentParser(description="Shifts UIDs/GIDs of the directory entries.")
 parser.add_argument("convert", choices=["b", "u", "g"])
