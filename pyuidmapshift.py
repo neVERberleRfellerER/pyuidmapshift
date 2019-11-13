@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import stat
 
 def map_id(old_id, source, destination):
     if old_id < source:
@@ -20,6 +21,8 @@ def shift_id(path, source, destination, shift_uids, shift_gids):
 
     if new_uid >= 0 or new_gid >= 0:
         os.lchown(path, new_uid, new_gid)
+        if not stat.S_ISLNK(st.st_mode):
+            os.chmod(path, st.st_mode)
 
 parser = argparse.ArgumentParser(description="Shifts UIDs/GIDs of the directory entries.")
 parser.add_argument("convert", choices=["b", "u", "g"])
